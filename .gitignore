@@ -7,3 +7,19 @@ result-*
 
 # Ignore NixOS interactive test driver history
 **/.nixos-test-history
+
+# Local instance configuration and private data
+.env
+.env.*
+!.env.example
+*.key
+*.pem
+*.qcow2
+*.img
+*.log
+backups/
+.local/
+node_modules/
+dist/
+__pycache__/
+.pytest_cache/
