@@ -1,0 +1,31 @@
+name: Local Workers compatibility
+
+on:
+  workflow_dispatch:
+  pull_request:
+    paths:
+      - 'tests/sites-compat/**'
+      - 'flake.nix'
+      - 'flake.lock'
+      - '.github/workflows/sites-compat.yml'
+  push:
+    paths:
+      - 'tests/sites-compat/**'
+      - 'flake.nix'
+      - 'flake.lock'
+      - '.github/workflows/sites-compat.yml'
+
+permissions:
+  contents: read
+
+jobs:
+  local-compatibility:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
+      - uses: cachix/install-nix-action@448cde739abec1eaf0646249e3d25bb8d9bc7702 # v31.11.2
+      - name: Install locked test dependencies
+        run: nix develop --command npm --prefix tests/sites-compat ci --ignore-scripts --no-audit --no-fund
+      - name: Test local Workers and SQLite-backed D1 simulation
+        run: nix develop --command npm --prefix tests/sites-compat test
