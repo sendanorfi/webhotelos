@@ -119,6 +119,33 @@ class Store:
                        (digest(token), csrf, now + SESSION_LIFETIME))
             return "ok", token, csrf, SESSION_LIFETIME
 
+    def change_password(self, token: str, current_password: str, new_password: str) -> str:
+        """Verify the current credential and revoke all sessions in one transaction."""
+        now = int(time.time())
+        with self.connect() as db:
+            db.execute("BEGIN IMMEDIATE")
+            session = db.execute(
+                "SELECT 1 FROM sessions WHERE token_hash = ? AND authenticated = 1 AND expires > ?",
+                (digest(token), now),
+            ).fetchone()
+            if not session:
+                return "expired"
+            db.execute("DELETE FROM login_failures WHERE time <= ?", (now - 600,))
+            if db.execute("SELECT count(*) FROM login_failures").fetchone()[0] >= 5:
+                return "limited"
+            row = db.execute("SELECT password_hash FROM administrator WHERE id = 1").fetchone()
+            try:
+                valid = bool(row) and HASHER.verify(row["password_hash"], current_password)
+            except (VerifyMismatchError, VerificationError, InvalidHashError):
+                valid = False
+            if not valid:
+                db.execute("INSERT INTO login_failures VALUES (?)", (now,))
+                return "invalid"
+            db.execute("UPDATE administrator SET password_hash = ? WHERE id = 1", (HASHER.hash(new_password),))
+            db.execute("DELETE FROM sessions")
+            db.execute("DELETE FROM login_failures")
+            return "ok"
+
     def username(self):
         with self.connect() as db:
             row = db.execute("SELECT username FROM administrator WHERE id = 1").fetchone()

@@ -13,6 +13,7 @@ from fastapi.exceptions import RequestValidationError
 from fastapi.responses import JSONResponse
 from pydantic import BaseModel, Field
 
+from .status import service_statuses
 from .store import Store
 
 LOG = logging.getLogger("webhotelos.audit")
@@ -56,6 +57,11 @@ class Config:
 class Login(BaseModel):
     username: str = Field(min_length=1, max_length=128)
     password: str = Field(min_length=1, max_length=1024, repr=False)
+
+
+class PasswordChange(BaseModel):
+    current_password: str = Field(min_length=1, max_length=1024, repr=False)
+    new_password: str = Field(min_length=12, max_length=1024, repr=False)
 
 
 def create_app(config: Config | None = None) -> FastAPI:
@@ -136,6 +142,21 @@ def create_app(config: Config | None = None) -> FastAPI:
         LOG.info("operation=logout result=success")
         return response
 
+    @app.post("/api/v1/account/password", status_code=204)
+    def change_password(body: PasswordChange, request: Request, response: Response):
+        session_or_401(request)
+        outcome = store.change_password(request.cookies[cookie_name], body.current_password, body.new_password)
+        LOG.info("operation=change_password result=%s", outcome)
+        if outcome == "expired":
+            raise HTTPException(status_code=401, detail="Authentication required")
+        if outcome == "limited":
+            raise HTTPException(status_code=429, detail="Too many attempts; try again later")
+        if outcome != "ok":
+            raise HTTPException(status_code=401, detail="Invalid credentials")
+        response.delete_cookie(cookie_name, path="/", secure=config.secure_cookie, httponly=True, samesite="strict")
+        response.status_code = 204
+        return response
+
     @app.get("/api/v1/status")
     def status(request: Request):
         session_or_401(request)
@@ -143,7 +164,7 @@ def create_app(config: Config | None = None) -> FastAPI:
         return {
             "version": config.version,
             "disk_free_bytes": shutil.disk_usage(config.state_file.parent).free,
-            "services": {},
+            "services": service_statuses(),
             "wordpress": {"status": "unknown", "site_url": site, "admin_url": site + "/wp-admin/"},
         }
 

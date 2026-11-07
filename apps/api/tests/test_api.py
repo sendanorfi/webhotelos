@@ -5,6 +5,7 @@ import os
 import sqlite3
 import unittest
 from pathlib import Path
+from unittest.mock import patch
 
 from fastapi.testclient import TestClient
 
@@ -53,6 +54,39 @@ class APITest(unittest.TestCase):
         invalid = self.client.post("/api/v1/session", headers=self.headers, json={"username": "x", "password": "secret" * 1000})
         self.assertEqual(invalid.status_code, 422)
         self.assertNotIn("secret", invalid.text)
+
+    def test_status_requires_auth_and_reports_services(self):
+        with patch("webhotelos_api.app.service_statuses", return_value={"nginx": "active", "php_fpm": "failed"}) as query:
+            self.assertEqual(self.client.get("/api/v1/status").status_code, 401)
+            query.assert_not_called()
+            self.assertEqual(self.login().status_code, 200)
+            result = self.client.get("/api/v1/status")
+            self.assertEqual(result.status_code, 200)
+            self.assertEqual(result.json()["services"], {"nginx": "active", "php_fpm": "failed"})
+            self.assertEqual(result.json()["wordpress"]["site_url"], "https://site.example.test")
+            query.assert_called_once_with()
+
+    def test_password_change_revokes_all_sessions(self):
+        second = TestClient(self.app, base_url="https://panel.example.test")
+        try:
+            csrf = second.get("/api/v1/session").json()["csrf_token"]
+            second_headers = {"Origin": "https://panel.example.test", "X-CSRF-Token": csrf}
+            self.assertEqual(second.post("/api/v1/session", headers=second_headers, json={"username": "admin", "password": "synthetic-password-123"}).status_code, 200)
+            result = self.login()
+            self.headers["X-CSRF-Token"] = result.json()["csrf_token"]
+            payload = {"current_password": "wrong", "new_password": "new-synthetic-password-456"}
+            self.assertEqual(self.client.post("/api/v1/account/password", json=payload).status_code, 403)
+            self.assertEqual(self.client.post("/api/v1/account/password", headers=self.headers, json=payload).status_code, 401)
+            self.assertEqual(self.client.get("/api/v1/status").status_code, 200)
+            payload["current_password"] = "synthetic-password-123"
+            self.assertEqual(self.client.post("/api/v1/account/password", headers=self.headers, json=payload).status_code, 204)
+            self.assertEqual(self.client.get("/api/v1/status").status_code, 401)
+            self.assertEqual(second.get("/api/v1/status").status_code, 401)
+            self.headers["X-CSRF-Token"] = self.client.get("/api/v1/session").json()["csrf_token"]
+            self.assertEqual(self.login("synthetic-password-123").status_code, 401)
+            self.assertEqual(self.login("new-synthetic-password-456").status_code, 200)
+        finally:
+            second.close()
 
     def test_reset_revokes_sessions(self):
         self.assertEqual(self.login().status_code, 200)

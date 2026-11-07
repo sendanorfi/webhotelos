@@ -1,6 +1,6 @@
 # Local API foundation
 
-This is an incomplete backend, not a deployment-ready management service. It implements a single local panel administrator, session handling and a limited status response. It does not implement jobs, WordPress initialization, service discovery, backup or restore.
+This is an incomplete backend, not a deployment-ready management service. It implements a single local panel administrator, session handling and a limited status response. It does not implement jobs, WordPress initialization, WordPress application-state discovery, backup or restore.
 
 Run the API only as a dedicated unprivileged service user behind the panel's HTTPS virtual host. Restrict the API listener to loopback or a Unix socket. Terminate TLS at Nginx; do not trust forwarded headers. Configure a request-body size limit and connection/request rate limits at the proxy. Protect the state directory from all other users. The code does not configure Nginx, systemd or these limits.
 
@@ -19,7 +19,8 @@ The FastAPI OpenAPI document is generated at `/openapi.json`. All paths below st
 - `GET /session`: establishes an anonymous session when needed and returns `authenticated` and `csrf_token`; authenticated responses include `username`.
 - `POST /session`: accepts `username` and `password`; returns the rotated session and CSRF token. Wrong credentials return 401; five failures in ten minutes impose a global temporary 429 limit. The global limit is independent of proxy-supplied client addresses.
 - `DELETE /session`: invalidates the authenticated session and returns 204.
-- `GET /status`: requires authentication. Reports version, free bytes, an empty services object and WordPress status `unknown`, together with the configured site and admin URLs. This does not yet inspect services or WordPress.
+- `POST /account/password`: accepts `current_password` and `new_password` (12 to 1024 characters), verifies the current credential, and atomically revokes every session upon success. It returns 204 and requires another login. This operation shares the login failure rate limit.
+- `GET /status`: requires authentication. Reports version, free bytes, fixed systemd service states and WordPress status `unknown`, together with the configured site and admin URLs. The service names match the experimental PHP-site profile. An unavailable systemd query returns `unknown`. The API does not yet inspect WordPress itself.
 
 Every state-changing request, including login, requires the exact `Origin` and the current `X-CSRF-Token`. The session token is an HTTP-only, host-only, SameSite=Strict cookie, Secure in HTTPS mode. Sessions expire and are stored server-side by a hash of the cookie. Passwords use Argon2id through `argon2-cffi`. This foundation has not received an independent security review.
 
