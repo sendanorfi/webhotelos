@@ -6,17 +6,28 @@
   "scripts": {
     "dev": "vite --mode demo --host 127.0.0.1",
     "build": "tsc --noEmit && vite build --mode production",
-    "build:demo": "tsc --noEmit && vite build --mode demo"
+    "build:demo": "tsc --noEmit && vite build --mode demo",
+    "typecheck": "tsc --noEmit",
+    "lint": "eslint . --max-warnings 0",
+    "format": "prettier --write .",
+    "format:check": "prettier --check .",
+    "test:lint": "node --test tools/*.test.mjs"
   },
   "dependencies": {
     "react": "19.2.6",
     "react-dom": "19.2.6"
   },
   "devDependencies": {
+    "@eslint/js": "10.0.1",
     "@types/react": "19.2.14",
     "@types/react-dom": "19.2.3",
     "@vitejs/plugin-react": "6.0.2",
+    "eslint": "10.14.0",
+    "eslint-plugin-react-hooks": "7.1.1",
+    "globals": "16.4.0",
+    "prettier": "3.9.9",
     "typescript": "5.9.3",
+    "typescript-eslint": "8.59.3",
     "vite": "8.0.13"
   }
 }

@@ -1,22 +1,23 @@
-export type Session = { authenticated: boolean; csrf_token: string; username?: string };
-export type Status = {
-  version: string;
-  disk_free_bytes: number;
-  services: Record<string, string>;
-  wordpress: { status: string; site_url: string; admin_url: string };
+export type Session = {
+  readonly authenticated: boolean;
+  readonly csrf_token: string;
+  readonly username?: string;
 };
-export type Job = { id: string; status: 'queued' | 'running' | 'succeeded' | 'failed' | 'interrupted'; error?: string };
-export type Backup = { id: string; created_at: string; size_bytes: number };
-export type Initialize = { title: string; username: string; email: string; password: string };
+export type Status = {
+  readonly version: string;
+  readonly disk_free_bytes: number;
+  readonly services: Record<string, string>;
+  readonly wordpress: {
+    readonly status: string;
+    readonly site_url: string;
+    readonly admin_url: string;
+  };
+};
 export interface Adapter {
   readonly demo: boolean;
   session(): Promise<Session>;
   login(username: string, password: string, csrf: string): Promise<Session>;
   logout(csrf: string): Promise<void>;
+  changePassword(currentPassword: string, newPassword: string, csrf: string): Promise<void>;
   status(): Promise<Status>;
-  initialize(data: Initialize, csrf: string): Promise<Job>;
-  createBackup(csrf: string): Promise<Job>;
-  backups(): Promise<Backup[]>;
-  job(id: string): Promise<Job>;
-  download(id: string): Promise<Blob>;
 }
