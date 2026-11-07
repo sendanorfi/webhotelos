@@ -12,7 +12,6 @@
   };
   users.users.admin = {
     isNormalUser = true;
-    extraGroups = [ "wheel" ];
     # An instance must supply an SSH public key. This example is locked.
   };
   security.sudo.wheelNeedsPassword = true;

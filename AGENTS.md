@@ -21,3 +21,5 @@ Build the experimental frontend and API with `nix build .#panel .#api`. Run the 
 The immediate milestone is one PHP site: an administrator uploads a synthetic PHP file over key-authenticated SSH/SFTP and Nginx executes it through PHP-FPM. Test this independently of the later WordPress and management-panel milestones. Existing on-premise site compatibility is not established by this smoke test.
 
 The experimental PHP site uses PHP 8.5, a site-specific unprivileged account, and writable data under `/var/lib/webhotelos/site`. `nix build .#php-site-test` runs the SSH/SFTP, PHP and reboot test. The instance image workflow is in `docs/php-quickstart.md`; never put private keys in its flake source directory.
+
+The opt-in panel is a separately hosted origin with an unprivileged local API, fixed service-status checks and panel password changes. `nix build .#panel-integration-test` exercises the API, sudo restriction and PHP service in a VM. The local workflow and limitations are in `docs/panel-quickstart.md`. Do not expose unavailable WordPress or backup controls.

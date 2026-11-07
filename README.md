@@ -23,6 +23,6 @@ Project code is MIT licensed; see [LICENSE](LICENSE). NixOS, Linux, WordPress an
 
 Nix tools come from the locked Nixpkgs revision. `nix fmt` formats the tree with `nixfmt-tree`; `nix flake check` checks formatting, common Nix anti-patterns with Statix, and unused bindings with deadnix. In `nix develop`, run `statix check .` or `deadnix --fail .` for individual diagnostics.
 
-The panel has separately built production and synthetic demo adapters; see [Sites development](docs/sites.md). The API and WordPress modules are not yet connected to the image or each other; see [API foundation](apps/api/README.md) and [WordPress service](docs/wordpress-service.md). Do not enable them for production.
+The panel has separately built production and synthetic demo adapters; see [Sites development](docs/sites.md). An opt-in local panel module connects the frontend and API to the PHP site; see [panel quickstart](docs/panel-quickstart.md). WordPress is not connected to the panel or the PHP image; see [WordPress service](docs/wordpress-service.md). Do not use these experimental components for production.
 
 The first PHP-site milestone is documented in [the QEMU quickstart](docs/php-quickstart.md). It remains a local HTTP-only experiment; do not use it as a public hosting deployment.

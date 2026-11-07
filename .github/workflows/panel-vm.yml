@@ -1,0 +1,39 @@
+name: Panel VM integration
+
+on:
+  workflow_dispatch:
+  pull_request:
+    paths:
+      - 'apps/api/**'
+      - 'apps/panel/**'
+      - 'flake.nix'
+      - 'flake.lock'
+      - 'modules/base.nix'
+      - 'modules/panel.nix'
+      - 'modules/php-site.nix'
+      - 'tests/panel-integration.nix'
+      - '.github/workflows/panel-vm.yml'
+  push:
+    paths:
+      - 'apps/api/**'
+      - 'apps/panel/**'
+      - 'flake.nix'
+      - 'flake.lock'
+      - 'modules/base.nix'
+      - 'modules/panel.nix'
+      - 'modules/php-site.nix'
+      - 'tests/panel-integration.nix'
+      - '.github/workflows/panel-vm.yml'
+
+permissions:
+  contents: read
+
+jobs:
+  panel-vm:
+    runs-on: ubuntu-latest
+    timeout-minutes: 45
+    steps:
+      - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
+      - uses: cachix/install-nix-action@448cde739abec1eaf0646249e3d25bb8d9bc7702 # v31.11.2
+      - name: Test panel and API integration
+        run: nix build .#panel-integration-test --no-link --print-build-logs

@@ -25,7 +25,7 @@
           ./apps/api/tests
         ];
       };
-      api = pkgs.writeShellApplication {
+      apiService = pkgs.writeShellApplication {
         name = "webhotelos-api";
         runtimeInputs = [ apiPython ];
         text = ''
@@ -33,10 +33,29 @@
           exec python -m uvicorn webhotelos_api.app:create_app --factory --host 127.0.0.1 --port 8765 --no-access-log
         '';
       };
+      apiAdmin = pkgs.writeShellApplication {
+        name = "webhotelos-admin-internal";
+        runtimeInputs = [ apiPython ];
+        text = ''
+          export PYTHONPATH=${apiSource}
+          exec python -m webhotelos_api.admin "$@"
+        '';
+      };
+      api = pkgs.symlinkJoin {
+        name = "webhotelos-api";
+        paths = [
+          apiService
+          apiAdmin
+        ];
+      };
       panelSource = nixpkgs.lib.fileset.toSource {
         root = ./apps/panel;
         fileset = nixpkgs.lib.fileset.unions [
           ./apps/panel/src
+          ./apps/panel/tools
+          ./apps/panel/.prettierignore
+          ./apps/panel/.prettierrc.json
+          ./apps/panel/eslint.config.mjs
           ./apps/panel/index.html
           ./apps/panel/package.json
           ./apps/panel/package-lock.json
@@ -48,7 +67,13 @@
         pname = "webhotelos-panel";
         version = "0.1.0-alpha";
         src = panelSource;
-        npmDepsHash = "sha256-lpHyGLe2pb10OekUuxvfGee0IPtuM+iEzzXN9bMpryI=";
+        npmDepsHash = "sha256-9HjExnpzrtMZnASpoVItC1LZUsMRLs/BqVtCgUW39MA=";
+        preBuild = ''
+          npm run lint
+          npm run format:check
+          npm run test:lint
+          npm run build:demo
+        '';
         installPhase = ''
           mkdir -p "$out"
           cp -r dist/. "$out/"
@@ -60,14 +85,22 @@
       };
     in
     {
-      nixosModules.default = import ./modules/base.nix;
-      nixosModules.phpSite = import ./modules/php-site.nix;
+      nixosModules = {
+        default = import ./modules/base.nix;
+        phpSite = import ./modules/php-site.nix;
+        panel = import ./modules/panel.nix;
+      };
       nixosConfigurations.example = example;
       packages.${system} = {
         qcow2 = example.config.system.build.image;
         inherit api panel;
         wordpress-boundary-test = import ./tests/wordpress.nix { inherit pkgs; };
         php-site-test = import ./tests/php-site.nix { inherit pkgs; };
+        panel-integration-test = import ./tests/panel-integration.nix {
+          inherit pkgs;
+          panelPackage = panel;
+          apiPackage = api;
+        };
       };
       checks.${system} = {
         archive =
@@ -86,6 +119,7 @@
           python -W error::ResourceWarning -m unittest discover -s ${apiSource}/tests -v
           touch "$out"
         '';
+        inherit panel;
         nix-lint =
           pkgs.runCommand "webhotelos-nix-lint"
             {
