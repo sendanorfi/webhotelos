@@ -15,7 +15,7 @@ nix build .#panel .#api
 nix build .#qcow2
 ```
 
-The image target is experimental. It uses a BIOS/legacy-boot QCOW2 disk and the NixOS disk-image module. Its example administrator has no SSH key or password, so it is inaccessible by design. It has not been verified by booting from disk. It is not an installation image. `nix flake check` runs the Nix style, API and archive tests; it is not a complete VM integration test. The separate WordPress boundary test runs with `nix build .#wordpress-boundary-test` and may use slow TCG emulation without KVM.
+The image target is experimental. It uses a BIOS/legacy-boot QCOW2 disk and the NixOS disk-image module. Its example administrator has no SSH key or password, so it is inaccessible by design. It is not an installation image. A separately configured PHP instance image was booted from disk and exercised over SSH, SFTP and HTTP; see the quickstart. `nix flake check` runs the Nix style, API and archive tests; it is not a complete VM integration test. The separate WordPress boundary test runs with `nix build .#wordpress-boundary-test` and may use slow TCG emulation without KVM.
 
 The archive validation code is a building block only. It does not extract archives, enforce resource limits, validate a manifest, back up data or restore a site. A future restore must implement and test all of these operations, including consistency and safe extraction into a private directory.
 
@@ -24,3 +24,5 @@ Project code is MIT licensed; see [LICENSE](LICENSE). NixOS, Linux, WordPress an
 Nix tools come from the locked Nixpkgs revision. `nix fmt` formats the tree with `nixfmt-tree`; `nix flake check` checks formatting, common Nix anti-patterns with Statix, and unused bindings with deadnix. In `nix develop`, run `statix check .` or `deadnix --fail .` for individual diagnostics.
 
 The panel has separately built production and synthetic demo adapters; see [Sites development](docs/sites.md). The API and WordPress modules are not yet connected to the image or each other; see [API foundation](apps/api/README.md) and [WordPress service](docs/wordpress-service.md). Do not enable them for production.
+
+The first PHP-site milestone is documented in [the QEMU quickstart](docs/php-quickstart.md). It remains a local HTTP-only experiment; do not use it as a public hosting deployment.

@@ -61,11 +61,13 @@
     in
     {
       nixosModules.default = import ./modules/base.nix;
+      nixosModules.phpSite = import ./modules/php-site.nix;
       nixosConfigurations.example = example;
       packages.${system} = {
         qcow2 = example.config.system.build.image;
         inherit api panel;
         wordpress-boundary-test = import ./tests/wordpress.nix { inherit pkgs; };
+        php-site-test = import ./tests/php-site.nix { inherit pkgs; };
       };
       checks.${system} = {
         archive =

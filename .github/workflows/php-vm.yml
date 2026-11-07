@@ -1,0 +1,31 @@
+name: PHP VM integration
+
+on:
+  workflow_dispatch:
+  pull_request:
+    paths:
+      - 'flake.nix'
+      - 'flake.lock'
+      - 'modules/php-site.nix'
+      - 'tests/php-site.nix'
+      - '.github/workflows/php-vm.yml'
+  push:
+    paths:
+      - 'flake.nix'
+      - 'flake.lock'
+      - 'modules/php-site.nix'
+      - 'tests/php-site.nix'
+      - '.github/workflows/php-vm.yml'
+
+permissions:
+  contents: read
+
+jobs:
+  php-vm:
+    runs-on: ubuntu-latest
+    timeout-minutes: 45
+    steps:
+      - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
+      - uses: cachix/install-nix-action@448cde739abec1eaf0646249e3d25bb8d9bc7702 # v31.11.2
+      - name: Test SSH, SFTP, PHP and persistence
+        run: nix build .#php-site-test --no-link --print-build-logs

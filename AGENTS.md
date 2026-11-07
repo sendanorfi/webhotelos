@@ -17,3 +17,7 @@ Current directories: `modules/` contains experimental NixOS modules; `examples/`
 Nix style: use `nix fmt`; `nix flake check` runs formatting, Statix and deadnix. Fix findings rather than disabling checks without a documented reason. The tools are available in `nix develop` and pinned by `flake.lock`.
 
 Build the experimental frontend and API with `nix build .#panel .#api`. Run the separate WordPress VM boundary test with `nix build .#wordpress-boundary-test`; it does not test initialization or backup.
+
+The immediate milestone is one PHP site: an administrator uploads a synthetic PHP file over key-authenticated SSH/SFTP and Nginx executes it through PHP-FPM. Test this independently of the later WordPress and management-panel milestones. Existing on-premise site compatibility is not established by this smoke test.
+
+The experimental PHP site uses PHP 8.5, a site-specific unprivileged account, and writable data under `/var/lib/webhotelos/site`. `nix build .#php-site-test` runs the SSH/SFTP, PHP and reboot test. The instance image workflow is in `docs/php-quickstart.md`; never put private keys in its flake source directory.
