@@ -12,6 +12,7 @@ on:
       - 'modules/panel.nix'
       - 'modules/php-site.nix'
       - 'tests/panel-integration.nix'
+      - 'tests/panel-browser.nix'
       - 'tests/panel-tls.nix'
       - '.github/workflows/panel-vm.yml'
   push:
@@ -24,6 +25,7 @@ on:
       - 'modules/panel.nix'
       - 'modules/php-site.nix'
       - 'tests/panel-integration.nix'
+      - 'tests/panel-browser.nix'
       - 'tests/panel-tls.nix'
       - '.github/workflows/panel-vm.yml'
 
@@ -39,3 +41,5 @@ jobs:
       - uses: cachix/install-nix-action@448cde739abec1eaf0646249e3d25bb8d9bc7702 # v31.11.2
       - name: Test panel and API integration
         run: nix build .#panel-integration-test .#panel-tls-test --no-link --print-build-logs
+      - name: Test Chromium against the VM API
+        run: nix build .#panel-browser-test --no-link --print-build-logs
