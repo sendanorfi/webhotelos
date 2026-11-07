@@ -96,6 +96,11 @@
         inherit api panel;
         wordpress-boundary-test = import ./tests/wordpress.nix { inherit pkgs; };
         php-site-test = import ./tests/php-site.nix { inherit pkgs; };
+        panel-tls-test = import ./tests/panel-tls.nix {
+          inherit pkgs;
+          panelPackage = panel;
+          apiPackage = api;
+        };
         panel-integration-test = import ./tests/panel-integration.nix {
           inherit pkgs;
           panelPackage = panel;

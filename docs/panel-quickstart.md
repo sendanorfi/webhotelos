@@ -24,7 +24,7 @@ webhotelos.nixosModules.panel
 }
 ```
 
-The site key in `configuration.nix` is separate. Build the instance and start its disk using the PHP quickstart. The `admin` account is separate from `site`. It can run only the fixed `webhotelos-admin` command with passwordless sudo; it does not get general root or wheel access. After verifying the VM's SSH host key out of band, initialize the local panel administrator over SSH:
+The site key in `configuration.nix` is separate. Build the instance and start its disk using the PHP quickstart. The `admin` account is separate from `site`. It can run only the fixed `webhotelos-admin` command with passwordless sudo; it does not get general root or wheel access. Replace `~/.ssh/id_ed25519` in the following commands with the administrator's private key path. After verifying the VM's SSH host key out of band, initialize the local panel administrator over SSH:
 
 ```sh
 ssh -t -p 2222 -i ~/.ssh/id_ed25519 admin@127.0.0.1 'sudo /run/current-system/sw/bin/webhotelos-admin init'
@@ -42,4 +42,4 @@ Open `http://localhost:8081` on the same host. `localhost` and port `8081` must 
 
 For an Internet-facing panel, the module can configure HTTPS and ACME for a separate hostname, but that profile is not a tested production deployment. DNS, ACME, firewall policy, backups and operational review remain necessary. The site itself also needs HTTPS before public use. The API runs as `webhotelos-api`, its SQLite state lives in `/var/lib/webhotelos-api`, and the panel is served by Nginx from its immutable package. The site contents remain under `/var/lib/webhotelos/site/public`.
 
-From the repository, `nix build .#panel-integration-test` runs the local panel/API VM integration test. `nix flake check` runs API unit tests, panel lint and builds. These tests do not prove ACME, Internet deployment, browser portability or WordPress functionality.
+From the repository, `nix build .#panel-integration-test .#panel-tls-test` runs the local panel/API and self-signed HTTPS VM integration tests. The HTTPS test uses a temporary runtime key and validates the secure cookie; it does not test ACME or HTTP-to-HTTPS redirects. `nix flake check` runs API unit tests, panel lint and builds. These tests do not prove ACME, Internet deployment, browser portability or WordPress functionality.

@@ -22,4 +22,4 @@ The immediate milestone is one PHP site: an administrator uploads a synthetic PH
 
 The experimental PHP site uses PHP 8.5, a site-specific unprivileged account, and writable data under `/var/lib/webhotelos/site`. `nix build .#php-site-test` runs the SSH/SFTP, PHP and reboot test. The instance image workflow is in `docs/php-quickstart.md`; never put private keys in its flake source directory.
 
-The opt-in panel is a separately hosted origin with an unprivileged local API, fixed service-status checks and panel password changes. `nix build .#panel-integration-test` exercises the API, sudo restriction and PHP service in a VM. The local workflow and limitations are in `docs/panel-quickstart.md`. Do not expose unavailable WordPress or backup controls.
+The opt-in panel is a separately hosted origin with an unprivileged local API, fixed service-status checks and panel password changes. `nix build .#panel-integration-test .#panel-tls-test` exercises the API, sudo restriction, PHP service and local TLS in VMs. The local workflow and limitations are in `docs/panel-quickstart.md`. Do not expose unavailable WordPress or backup controls.
