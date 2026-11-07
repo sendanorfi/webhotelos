@@ -13,3 +13,5 @@ Use English in all repository material. Preserve existing work and the MIT licen
 As implementation grows, document actual component directories and working development, formatting, build and test commands here. Update this file whenever those responsibilities or commands change.
 
 Current directories: `modules/` contains the experimental NixOS base; `examples/` contains the locked example image configuration; `packages/webhotelos/` contains standalone Python building blocks; `tests/` contains unit tests. Run `python3 -m unittest discover -s tests -v`, `nix fmt`, `nix flake check`, and `nix build .#qcow2` as appropriate. The image and archive validation code are not yet a working deployment or restore procedure.
+
+Nix style: use `nix fmt`; `nix flake check` runs formatting, Statix and deadnix. Fix findings rather than disabling checks without a documented reason. The tools are available in `nix develop` and pinned by `flake.lock`.

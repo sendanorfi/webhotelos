@@ -10,7 +10,7 @@ On an x86_64 Linux host with Nix flakes enabled, the current checks are:
 nix develop
 nix fmt
 python3 -m unittest discover -s tests -v
-nix flake check
+nix flake check   # includes nixfmt, statix and deadnix checks
 nix build .#qcow2
 ```
 
@@ -19,3 +19,5 @@ The image target is experimental. It uses a BIOS/legacy-boot QCOW2 disk and the 
 The archive validation code is a building block only. It does not extract archives, enforce resource limits, validate a manifest, back up data or restore a site. A future restore must implement and test all of these operations, including consistency and safe extraction into a private directory.
 
 Project code is MIT licensed; see [LICENSE](LICENSE). NixOS, Linux, WordPress and other dependencies retain their own licenses. No claim is made that a complete image is MIT licensed. Nixpkgs supplies package source and license metadata; binary distribution needs a separate license and corresponding-source review before release.
+
+Nix tools come from the locked Nixpkgs revision. `nix fmt` formats the tree with `nixfmt-tree`; `nix flake check` checks formatting, common Nix anti-patterns with Statix, and unused bindings with deadnix. In `nix develop`, run `statix check .` or `deadnix --fail .` for individual diagnostics.
